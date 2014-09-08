@@ -46,7 +46,14 @@ module.exports = {
       this.appConfig.appSecret,
       '1.0', null, 'HMAC-SHA1', null, {})
     function parse(done, err, body, res) {
-      if (res.headers['content-type'].toLowerCase().indexOf('application/json') === -1) return done(err, body, res)
+      if (!res) {
+        return done(new Error('Invalid oauth response'));
+      }
+
+      if (res.headers['content-type'].toLowerCase().indexOf('application/json') === -1) {
+        return done(err, body, res)
+      }
+
       var data
       try {
         data = JSON.parse(body)
@@ -76,6 +83,10 @@ module.exports = {
   getBranches: function (account, config, project, done) {
     var client = this.oauth(account)
     client.get(API + 'repositories/' + project.name + '/branches', function (err, data, res) {
+      if (err) {
+        return done(new Error('Failed to acquire branch information: ' + err));
+      }
+
       done(null, Object.keys(data))
     })
   },
